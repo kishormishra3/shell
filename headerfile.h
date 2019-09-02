@@ -12,4 +12,6 @@
 #include<dirent.h>
 #include <sys/wait.h>
 #include "function.cpp"
+#include <stdlib.h> 
+#include <termios.h> 
 using namespace std;
