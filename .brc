@@ -1,0 +1,4 @@
+TEMPPATH=/home/kishor/Desktop/TASK/shell
+PS1=@
+SHELL=/bin/kishor
+HOME=/home/kishor
