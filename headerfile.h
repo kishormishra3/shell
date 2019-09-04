@@ -14,4 +14,5 @@
 #include "function.cpp"
 #include <stdlib.h> 
 #include <termios.h> 
+#include <sys/fsuid.h>
 using namespace std;

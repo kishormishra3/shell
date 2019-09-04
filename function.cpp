@@ -6,8 +6,63 @@
 #include <unistd.h> 
 #include<map>
 using namespace std;
-int check(string str)
+int run(string com,int flag)
 {
+	char *d[flag];
+	bool first=false;
+	string command="";
+	int l=com.length(),c=0,m=1,k=0;
+	for(int i=0;i<l;i++)
+	{
+		if(com[i]!=32)
+		{
+			if(com[i+1]==32||com[i+1]=='\0')
+			{	
+				char dist[1024]={0};
+				string sub=com.substr(c,m);
+				d[k]=new char[sub.length()];
+				if(!first)
+				{
+					command=sub;
+					first=true;
+				}
+				strcpy(d[k], sub.c_str());
+				k++;
+				c=i+2;
+				m=-1;							
+			}
+		}
+	m++;
+	}
+	d[k]=NULL;
+	char * cstr= getenv("PATH");
+	char * p = std::strtok (cstr,":");
+	int count=0;
+	while (p!=0)
+	{
+		if(count==10)
+		{
+			cout<<command<<" : command not found\n";
+			exit(0);
+		}
+		p = std::strtok(NULL,":");
+		string s(p);
+		s=s+"/"+command;
+		char al[1024]={0};
+		strcpy(al, s.c_str());
+		if(execv(al,d)!=-1)
+		{
+			break;
+		}
+		count++;
+	}
+	for(int i=0;i<k;i++)
+	delete d[i];
+return 0;
+}
+int check(string &str)
+{
+	string a="";
 	int l=str.length(),c=0;
 	char * cstr = new char [str.length()+1];
   	strcpy (cstr, str.c_str());
@@ -15,6 +70,17 @@ int check(string str)
 	string s(p);
 	if(s=="cd")
 	return -2;
+	bool b=false;
+	for(int i=0;i<l;i++)
+	{
+		if(str[i]!='"'&&str[i]!=39)
+		a=a+str[i];
+		if(str[i]=='|')
+		b=true; 
+	}
+	str=a;	
+	if(b==true)
+	return -5;
 	for(int i=0;i<l;i++)
 	{
 		if(str[i]=='$')
@@ -27,6 +93,7 @@ int check(string str)
 			c++;
 		}
 	}
+	str=a;
 	return c;
 }
 int kbhit(void) 
@@ -116,24 +183,3 @@ string setVal(string c,map<string,string> &ma)
 	ma.insert(make_pair(key,val));
 	return key;
 }
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
- 

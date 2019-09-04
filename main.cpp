@@ -8,7 +8,7 @@ int main()
 	bashfix(env);
 	auto it=env.find("PS1");
 	string promt=it->second;
-	chdir(getenv("HOME"));
+	//chdir(getenv("HOME"));
 	int status;
 	string com;
 	cout<<"\n\n\n\n\n\t\t******************Welcome to my shell*************************\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
@@ -25,8 +25,7 @@ int main()
 		getline(cin,com);
 		if(com=="")
 		continue;
-		int p=fork();	
-		fflush(stdin);	
+		int p=fork();		
 		if(p)
 		{
 			pid_t p=waitpid(-1,&status,0);
@@ -47,7 +46,7 @@ int main()
 			}
 			else if(WEXITSTATUS(status)==6)
 			{
-				/*read(fd[0],buff,1024);
+				read(fd[0],buff,1024);
 				string key="",val="";
 				bool b=true;
 				for(int i=0;buff[i]!='\0';i++)
@@ -59,70 +58,52 @@ int main()
 					else 
 					val=val+buff[i];
 				}
-				auto it=env.find(key);
+				auto it=env.find(key);	
+				if(it!=env.end())
 				env.erase(it);
 				env.insert(make_pair(key,val));
-				//close(fd[0]);
-				//removefix();*/
+				close(fd[0]);
 			}
 		}
 		else
 		{
 			int flag=check(com);
-			char *d[flag];
-			if(flag>0)
-			{	
-				bool first=false;
-				string command="";
-				int l=com.length(),c=0,m=1,k=0;
-				for(int i=0;i<l;i++)
+			if(flag==-5)
+			{
+				string s="";
+				bool b=true;
+				for(int i=0;i<com.length();i++)
 				{
-					if(com[i]!=32)
+					if(com[i]=='|')
 					{
-						if(com[i+1]==32||com[i+1]=='\0')
-						{	
-							char dist[1024]={0};
-							string sub=com.substr(c,m);
-							d[k]=new char[sub.length()];
-							if(!first)
-							{
-								command=sub;
-								first=true;
-							}
-							//cout<<sub<<sub.length()<<endl;
-							strcpy(d[k], sub.c_str());
-							k++;
-							c=i+2;
-							m=-1;							
+						int fd=open("t.txt",O_CREAT|O_TRUNC|O_RDONLY|O_WRONLY,0644);
+						dup2(fd,1);
+						close(fd);
+						if(b==true)
+						{
+							int y=run(s,10);
+							cout<<y<<endl;
 						}
+						else 
+						{
+							s=(s+" t.txt");
+							run(s,10);
+						}
+						s="";
+						b=false;
 					}
-					m++;
-				}
-				d[k]=NULL;
-				char * cstr= getenv("PATH");
-				char * p = std::strtok (cstr,":");
-				int count=0;
-				while (p!=0)
-				{
-					if(count==10)
+					else
 					{
-						cout<<command<<" : command not found\n";
-						exit(0);
+						s=s+com[i];
 					}
-					p = std::strtok(NULL,":");
-					string s(p);
-					s=s+"/"+command;
-					char al[1024];
-					strcpy(al, s.c_str());
-					if(execv(al,d)!=-1)
-					{
-						break;
-					}
-					count++;
 				}
-				//
-				//cout<<flag<<endl;
-				//char a[]="Done\n";
+				s=(s+" t.txt");
+				run(s,10);
+				exit(1);
+			}
+			else if(flag>0)
+			{	
+				run(com,flag);
 			}
 			else if(flag==-2)
 			{
@@ -178,20 +159,49 @@ int main()
 					}
 					cout<<p<<endl;
 					exit(0);
+				}
+				else
+				{
+					cout<<it->second<<endl;
+					exit(0);
 				}			
 			}
 			else if(flag==-3)
 			{
-				cout<<"hello";
-				string key=setVal(com,env);
-				auto it=env.find(key);
-				string val=it->second;
-				cout<<key<<val;
-				key=key+"+"+val;
-				char p[1024]={0};
-				strcpy(p, key.c_str());
-				//write(fd[1],p,1024);
-				//close(fd[1]);
+				bool b=false,k=false;
+				string s="",key="",val="";
+				int l=com.length();
+				for(int i=0;i<l;i++)
+				if(com[i]=='$'&&b==true)
+				k=true;
+				else if(com[i]=='=')
+				b=true;
+				else if(k==true)
+				s+=com[i];
+				else if(b==false)
+				key+=com[i];
+				else if(b==true)
+				{
+					val=val+com[i];
+				}
+				if(k==true)
+				{
+					auto it =env.find(s);
+					s=it->second;
+					key=key+"+"+s;
+					char al[1024]={0};
+					strcpy (al,key.c_str());
+					write(fd[1],al,100);
+					close(fd[1]);
+				}
+				else
+				{
+					char al[1024]={0};
+					key=key+"+"+val;
+					strcpy (al,key.c_str());
+					write(fd[1],al,1024);
+					close(fd[1]);
+				}
 				exit(6);
 			}
 			exit(0);
