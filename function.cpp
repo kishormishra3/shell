@@ -1,3 +1,6 @@
+#include <stdlib.h> 
+#include <termios.h> 
+#include <sys/fsuid.h>
 #include <fcntl.h> 
 #include <pthread.h> 
 #include <stdio.h> 
@@ -6,35 +9,34 @@
 #include <unistd.h> 
 #include<map>
 using namespace std;
-int run(string com,int flag)
+void run(string com,int flag)
 {
-	char *d[flag];
-	bool first=false;
-	string command="";
-	int l=com.length(),c=0,m=1,k=0;
-	for(int i=0;i<l;i++)
+	stringstream s(com);
+	char *d[1024];
+	string word;
+	int i=0;	
+	if(flag!=3)
 	{
-		if(com[i]!=32)
-		{
-			if(com[i+1]==32||com[i+1]=='\0')
-			{	
-				char dist[1024]={0};
-				string sub=com.substr(c,m);
-				d[k]=new char[sub.length()];
-				if(!first)
-				{
-					command=sub;
-					first=true;
-				}
-				strcpy(d[k], sub.c_str());
-				k++;
-				c=i+2;
-				m=-1;							
-			}
-		}
-	m++;
+		int fd=open("t.txt",O_RDWR|O_CREAT|O_TRUNC,0644);
+		dup2(fd,1);
+		close(fd);
 	}
-	d[k]=NULL;
+	while(s >> word)
+	{
+		d[i]=new char[word.length()];
+		strcpy (d[i],word.c_str());
+		cout<<d[i]<<endl;		
+		i++;	
+	}
+	if(flag!=1)
+	{
+		word="t.txt";
+		d[i]=new char[word.length()];
+		strcpy (d[i],word.c_str());
+		i++;
+	}
+	d[i]=NULL;
+	string command=d[0];
 	char * cstr= getenv("PATH");
 	char * p = std::strtok (cstr,":");
 	int count=0;
@@ -56,9 +58,8 @@ int run(string com,int flag)
 		}
 		count++;
 	}
-	for(int i=0;i<k;i++)
-	delete d[i];
-return 0;
+	close(1);
+	exit(0);
 }
 int check(string &str)
 {
@@ -68,17 +69,19 @@ int check(string &str)
   	strcpy (cstr, str.c_str());
 	char *p=strtok(cstr," ");
 	string s(p);
-	if(s=="cd")
-	return -2;
 	bool b=false;
 	for(int i=0;i<l;i++)
 	{
-		if(str[i]!='"'&&str[i]!=39)
+		if(str[i]!='"'&&str[i]!=39&&str[i]!='&')
 		a=a+str[i];
 		if(str[i]=='|')
 		b=true; 
 	}
 	str=a;	
+	if(s=="cd")
+	return -2;
+	if(s=="fg")
+	return -6;
 	if(b==true)
 	return -5;
 	for(int i=0;i<l;i++)
