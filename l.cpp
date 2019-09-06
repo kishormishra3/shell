@@ -1,25 +1,28 @@
-int kbhit(void) 
-{ 
-    struct termios oldt, newt; 
-    int ch; 
-    int oldf; 
-  
-    tcgetattr(STDIN_FILENO, &oldt); 
-    newt = oldt; 
-    newt.c_lflag &= ~(ICANON | ECHO); 
-    tcsetattr(STDIN_FILENO, TCSANOW, &newt); 
-    oldf = fcntl(STDIN_FILENO, F_GETFL, 0); 
-    fcntl(STDIN_FILENO, F_SETFL, oldf | O_NONBLOCK); 
-  
-    ch = getchar(); 
-  
-    tcsetattr(STDIN_FILENO, TCSANOW, &oldt); 
-    fcntl(STDIN_FILENO, F_SETFL, oldf); 
-  
-    if (ch != EOF) { 
-        ungetc(ch, stdin); 
-        return 1; 
-    } 
-  
-    return 0; 
+#include <curses.h>
+#include<iostream>
+int main()
+{
+	 int ch;
+	 initscr();
+	 raw(); 
+	 keypad(stdscr, TRUE); 
+	 noecho(); 
+	 printw("Type any character to see it in bold\n");
+	 ch = getch(); 
+	 if(ch == KEY_F(1)) 
+	 printw("F1 Key pressed");
+	 else
+	 { 
+		 printw("The pressed key is ");
+		 attron(A_BOLD);
+		 printw("%c", ch);
+		 attroff(A_BOLD);
+	 }
+	 refresh(); 
+	 getch(); 
+	 endwin(); 
+	 return 0;
 }
+
+
+

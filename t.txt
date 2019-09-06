@@ -1,0 +1,10 @@
+a.out
+function.cpp
+headerfile.h
+k.cpp
+l.cpp
+main.cpp
+m.cpp
+mm.txt
+trie.cpp
+t.txt

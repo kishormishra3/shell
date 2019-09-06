@@ -9,6 +9,35 @@
 #include <unistd.h> 
 #include<map>
 using namespace std;
+void solve(string &com,map<string,string> ali)
+{
+	stringstream str(com);
+	string s="",word;
+	int c=0;
+	while(str >> word)
+	{
+		auto it=ali.find(word);
+		if(it!=ali.end()&&c==0)
+		{
+			s=s+(it->second);
+			c++;
+		}
+		else if((it!=ali.end()))
+		{
+			s=s+" "+(it->second);
+		}
+		else if(c==0)
+		{
+			s=s+word;
+			c++;
+		}
+		else
+		{
+			s=s+" "+word;
+		}
+	}
+	com=s;
+}
 void run(string com,int flag)
 {
 	stringstream s(com);
@@ -24,13 +53,12 @@ void run(string com,int flag)
 	while(s >> word)
 	{
 		d[i]=new char[word.length()];
-		strcpy (d[i],word.c_str());
-		cout<<d[i]<<endl;		
+		strcpy (d[i],word.c_str());		
 		i++;	
 	}
 	if(flag!=1)
 	{
-		word="t.txt";
+		word="temp.txt";
 		d[i]=new char[word.length()];
 		strcpy (d[i],word.c_str());
 		i++;
@@ -61,7 +89,7 @@ void run(string com,int flag)
 	close(1);
 	exit(0);
 }
-int check(string &str)
+int check(string &str,map<string,string> ali)
 {
 	string a="";
 	int l=str.length(),c=0;
@@ -78,8 +106,17 @@ int check(string &str)
 		b=true; 
 	}
 	str=a;	
-	if(s=="cd")
+	auto it = ali.find(s);
+	if(it!=ali.end()&&(it->first=="cd"))
+	{
+		return -2;
+	}
+	else if(s=="cd")
 	return -2;
+	if(it!=ali.end()&&(it->first=="alias"))
+	return -7;
+	else if(s=="alias")
+	return -7;
 	if(s=="fg")
 	return -6;
 	if(b==true)

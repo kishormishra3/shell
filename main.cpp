@@ -2,19 +2,24 @@
 #include "headerfile.h"
 #include <unistd.h>
 using namespace std;
+void handle(int sig)
+{
+}
 int main()
 {
 	map<string,string> env;
+	map<string,string> ali;
 	bashfix(env);
 	auto it=env.find("PS1");
 	string promt=it->second;
 	//chdir(getenv("HOME"));
-	int status;
+	int status=0;
 	string com;
 	int pid=getpgrp();
 	cout<<"\n\n\n\n\n\t\t******************Welcome to my shell*************************\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n\n";
 	while(1)
 	{
+		string s1="",file="";
 		int fd[2];	
 		if(pipe(fd)<0)
 		exit(1);
@@ -22,64 +27,121 @@ int main()
 		auto it=env.find("PS1");
 		string promt=it->second;
 		cout<<promt<<" ";
-		fflush(stdin);
 		getline(cin,com);
 		if(com=="")
 		continue;
-		bool t=true;
+		bool t=true,nn=true,nnn=true;
 		for(int i=0;i<com.length();i++)
+		if(com[i]=='&')
+		{
+				t=false;
+		}
+		for(int i=0;i<com.length();i++)
+		{
+			
+			
+			if(com[i]=='>'&&com[i+1]=='>')
 			{
-				if(com[i]=='&')
+				i=i+2;
+				nnn=false;
+				while(i<com.length())
 				{
-					t=false;
+					if(com[i]!=32)
+					{
+						file+=com[i];
+					}
+				i++;
 				}
 			}
-		int p=fork();		
+			else if(com[i]=='>')
+			{
+				i++;
+				nn=false;
+				while(i<com.length())
+				{
+					if(com[i]!=32)
+					{
+						file+=com[i];
+					}
+				i++;
+				}
+			}
+			else
+			{	
+				s1=s1+com[i];
+			}
+		}
+		com=s1;
+		if(nnn==false)
+		nn=false;
+		int p=fork();
 		if(p)
 		{
-			if(t==true){
-			pid_t p=waitpid(0,&status,0);
+			if(t==true)
+			{
+				pid_t p=waitpid(-1,&status,0);
 
-			if(WEXITSTATUS(status)==1)
-			{
-				cout<<"Error\n";
-			}
-			else if(WEXITSTATUS(status)==0)
-			{
-				//read(fd[0],buff,1024);
-				continue;
-			}
-			else if(WEXITSTATUS(status)==5)
-			{
-				read(fd[0],buff,1024);
-				chdir(buff);
-				close(fd[0]);
-			}
-			else if(WEXITSTATUS(status)==6)
-			{
-				read(fd[0],buff,1024);
-				string key="",val="";
-				bool b=true;
-				for(int i=0;buff[i]!='\0';i++)
+				if(WEXITSTATUS(status)==1)
 				{
-					if(buff[i]=='+')
-					b=false;
-					else if(b==true)
-					key=key+buff[i];
-					else 
-					val=val+buff[i];
+					cout<<"Error\n";
 				}
-				auto it=env.find(key);	
-				if(it!=env.end())
-				env.erase(it);
-				env.insert(make_pair(key,val));
-				close(fd[0]);
+				else if(WEXITSTATUS(status)==0)
+				{
+					continue;
+				}
+				else if(WEXITSTATUS(status)==5)
+				{
+					read(fd[0],buff,1024);
+					chdir(buff);
+					close(fd[0]);
+				}
+				else if(WEXITSTATUS(status)==6)
+				{
+					read(fd[0],buff,1024);
+					string key="",val="";
+					bool b=true;
+					for(int i=0;buff[i]!='\0';i++)
+					{
+						if(buff[i]=='+')
+						b=false;
+						else if(b==true)
+						key=key+buff[i];
+						else 
+						val=val+buff[i];
+					}
+					auto it=env.find(key);	
+					if(it!=env.end())
+					env.erase(it);
+					env.insert(make_pair(key,val));
+					close(fd[0]);
+				}
+				else if(WEXITSTATUS(status)==7)
+				{
+					read(fd[0],buff,1024);
+					string key="",val="";
+					bool b=true;
+					for(int i=0;buff[i]!='\0';i++)
+					{
+						if(buff[i]=='+')
+						b=false;
+						else if(b==true)
+						key=key+buff[i];
+						else 
+						val=val+buff[i];
+					}
+					auto it=ali.find(key);	
+					if(it!=ali.end())
+					ali.erase(it);
+					ali.insert(make_pair(key,val));
+					close(fd[0]);
+				}
 			}
-			}else
+			else
 			{
 				read(fd[0],buff,1024);
 				cout<<buff<<endl;
 				close(fd[0]);
+				t=true;
 			}
 		}
 		else
@@ -88,8 +150,6 @@ int main()
 			{
 				if(com[i]=='&')
 				{
-					if(fork()>0)
-					exit(0);
 					string s=to_string(getpid());
 					setpgid(0,1);
 					char al[10]={0};
@@ -98,7 +158,8 @@ int main()
 					close(fd[1]);					
 				}
 			}
-			int flag=check(com);
+			solve(com,ali);
+			int flag=check(com,ali);
 			if(flag==-5)
 			{
 				string s="";
@@ -123,6 +184,13 @@ int main()
 						}
 						s="";
 						b=false;
+						char c;
+						int fd=open("t.txt",O_RDWR,0644);
+						int f1=open("temp.txt",O_RDWR|O_CREAT|O_TRUNC,0644);
+						while(read(fd,&c,1)!=0)
+						write(f1,&c,1);
+						close(f1);
+						close(fd);
 					}
 					else
 					{
@@ -152,6 +220,7 @@ int main()
 							d[k]=new char[sub.length()];
 							if(!first)
 							{
+								cout<<sub<<endl;							
 								command=sub;
 								first=true;
 							}
@@ -167,23 +236,59 @@ int main()
 				char * cstr= getenv("PATH");
 				char * p = std::strtok (cstr,":");
 				int count=0;
-				while (p!=0)
+				if(nn==false)
+				{				
+					int fd;
+					char *fi=new char[file.length()];
+					strcpy(fi, file.c_str());
+					if(nnn=false)
+					{
+						fd=open(fi,O_CREAT|O_APPEND,0644);					
+					}
+					else
+						fd=open(fi,O_RDWR|O_CREAT,0644);
+					while (p!=0)
+					{
+						if(signal(SIGINT,handle)==SIG_ERR);
+						if(count==10)
+						{
+							cout<<command<<" : command not found\n";
+							exit(1);
+						}
+						p = std::strtok(NULL,":");
+						string s(p);
+						s=s+"/"+command;
+						char al[1024]={0};
+						strcpy(al, s.c_str());
+						dup2(fd,1);
+						if(execv(al,d)!=-1)
+						{
+							break;
+						}
+						count++;
+					}
+				close(fd);
+				}
+				else
 				{
-					if(count==10)
+					while (p!=0)
 					{
-						cout<<command<<" : command not found\n";
-						exit(0);
+						if(count==10)
+						{
+							cout<<command<<" : command not found\n";
+							exit(1);
+						}
+						p = std::strtok(NULL,":");
+						string s(p);
+						s=s+"/"+command;
+						char al[1024]={0};
+						strcpy(al, s.c_str());
+						if(execv(al,d)!=-1)
+						{
+							break;
+						}
+						count++;
 					}
-					p = std::strtok(NULL,":");
-					string s(p);
-					s=s+"/"+command;
-					char al[1024]={0};
-					strcpy(al, s.c_str());
-					if(execv(al,d)!=-1)
-					{
-						break;
-					}
-					count++;
 				}
 				for(int i=0;i<k;i++)
 				delete d[i];
@@ -216,11 +321,19 @@ int main()
 			}
 			else if(flag==-1)
 			{
-				bool b=false;
+				bool b=false,r=false,rr=false;
 				string c="";
 				int l=com.length();
 				for(int i=0;i<l;i++)
 				{
+					if(com[i]=='$'&&com[i+1]=='$')
+					{
+						r=true;
+					}
+					if(com[i]=='$'&&com[i+1]=='?')
+					{
+						rr=true;
+					}
 					if(com[i]=='$')
 					{
 						b=true;
@@ -229,6 +342,16 @@ int main()
 					c=c+com[i];
 					else if(com[i]==' ')
 					b=false;
+				}
+				if(rr==true)
+				{
+					cout<<status<<endl;
+					exit(0);
+				}
+				if(r==true)
+				{
+					cout<<getppid()<<endl;
+					exit(0);
 				}
 				it=env.find(c);
 				if(it==env.end())
@@ -300,7 +423,34 @@ int main()
 				}
 				int x=stoi(s);
 				setpgid(x,pid);
-				tcsetpgrp(0,pid);
+				exit(8);
+			}
+			else if(flag==-7)
+			{
+				string s="",key="",val="";
+				int b=1;
+				for(int i=0;i<com.length();i++)
+				{
+					if(b==1&&(com[i]==' '))
+						b++;
+					else if(b==2&&com[i]=='=')
+					b++;
+					else if(b==2&&com[i]!='"'&&com[i]!=39)
+					{
+						key+=com[i];	
+					}
+					else if(b>2&&com[i]!='"'&&com[i]!=39)
+					{
+						val+=com[i];	
+					}
+					
+				}
+				key=key+"+"+val;
+				char al[1024]={0};
+				strcpy (al,key.c_str());
+				write(fd[1],al,1024);
+				close(fd[1]);
+				exit(7);
 			}
 			exit(0);
 		}
